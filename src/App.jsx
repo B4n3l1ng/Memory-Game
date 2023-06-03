@@ -21,6 +21,9 @@ function App() {
   const [choiceOne, setChoiceOne] = useState(null);
   const [choiceTwo, setChoiceTwo] = useState(null);
   const [disabled, setDisabled] = useState(false);
+  const [scores, setScores] = useState(
+    JSON.parse(localStorage.getItem("scores"))
+  );
 
   //shuffle cards
   const shuffleCards = () => {
@@ -32,6 +35,7 @@ function App() {
     setCards(shuffledCards);
     setTurns(0);
     setMatches(0);
+    setScores(JSON.parse(localStorage.getItem("scores")));
   };
 
   //Handle a choice
@@ -71,6 +75,23 @@ function App() {
     }
   }, [choiceOne, choiceTwo]);
 
+  useEffect(() => {
+    if (matches === 8) {
+      const scores = JSON.parse(localStorage.getItem("scores"));
+      if (scores) {
+        scores.push(turns);
+        scores.sort((a, b) => a - b);
+        localStorage.setItem("scores", JSON.stringify(scores));
+        setScores(JSON.parse(localStorage.getItem("scores")));
+      } else {
+        const scores = [];
+        scores.push(turns);
+        localStorage.setItem("scores", JSON.stringify(scores));
+        setScores(JSON.parse(localStorage.getItem("scores")));
+      }
+    }
+  }, [matches]);
+
   //start game automatically
   useEffect(() => {
     shuffleCards();
@@ -78,20 +99,36 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Memory Game</h1>
-      <button onClick={shuffleCards}>New Game</button>
-      <p>Turns: {turns}</p>
-      <p>Matched: {matches}</p>
-      <div className="card-grid">
-        {cards.map((card) => (
-          <SingleCard
-            key={card.id}
-            card={card}
-            handleChoice={handleChoice}
-            flipped={card === choiceOne || card === choiceTwo || card.matched}
-            disabled={disabled}
-          />
-        ))}
+      <div className="game">
+        <h1>Memory Game</h1>
+        <button onClick={shuffleCards}>New Game</button>
+        <p>Turns: {turns}</p>
+        <p>Matched: {matches}</p>
+        <div className="card-grid">
+          {cards.map((card) => (
+            <SingleCard
+              key={card.id}
+              card={card}
+              handleChoice={handleChoice}
+              flipped={card === choiceOne || card === choiceTwo || card.matched}
+              disabled={disabled}
+            />
+          ))}
+        </div>
+      </div>
+      <div className="score">
+        <h2>Best scores:</h2>
+        <div>
+          <ol>
+            {scores ? (
+              scores.map((score) => {
+                return <li>{score}</li>;
+              })
+            ) : (
+              <p>Nothing here yet!</p>
+            )}
+          </ol>
+        </div>
       </div>
     </div>
   );
